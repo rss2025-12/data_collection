@@ -8,11 +8,8 @@ from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-from rclpy.node import Node
-import rclpy
 import numpy as np
 import os, csv
-from datetime import datetime
 
 class Lab5(Node):
     def __init__(self):
@@ -34,7 +31,7 @@ class Lab5(Node):
         self.estimated_pose = None
 
         # Writing data
-        output_path = os.path.join(os.path.dirname(__file__), '../data/lab_5/normal.csv') # File name
+        output_path = os.path.join(os.path.dirname(__file__), '../data/lab_5/test.csv') # File name
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         self.csv_file = open(output_path, mode='w', newline='')

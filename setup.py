@@ -20,6 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'lab_5 = data_collection.lab_5:main',
+            'lab_6 = data_collection.lab_6:main',
+            'final = data_collection.final:main'
         ],
     },
 )
