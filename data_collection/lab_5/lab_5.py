@@ -31,7 +31,7 @@ class Lab5(Node):
         self.estimated_pose = None
 
         # Writing data
-        output_path = os.path.join(os.path.dirname(__file__), '../data/lab_5/test.csv') # File name
+        output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_5/test.csv') # File name
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         self.csv_file = open(output_path, mode='w', newline='')
@@ -92,10 +92,13 @@ def main(args=None):
     node = Lab5()
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass  # Optional: print("KeyboardInterrupt received")
     finally:
         node.csv_file.close()
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

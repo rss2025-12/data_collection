@@ -1,4 +1,4 @@
 <launch>
-    <node pkg="localization" exec="sim_test" name="sim_test" output="screen"></node>
+    <node pkg="data_collection" exec="lab_5_sim_test" name="lab_5_sim_test" output="screen"></node>
     <node pkg="data_collection" exec="lab_5" name="lab_5" output="screen"></node>
 </launch>
