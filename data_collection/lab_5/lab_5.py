@@ -36,7 +36,7 @@ class Lab5(Node):
 
         self.csv_file = open(output_path, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
-        self.csv_writer.writerow(['timestamp', 'position_error', 'yaw_error']) # Header
+        self.csv_writer.writerow(['timestamp', 'position_error', 'yaw_error', 'cross_track_error']) # Header
 
         # Timer to periodically compute error
         self.timer = self.create_timer(1, self.compute_error)
@@ -82,9 +82,14 @@ class Lab5(Node):
         yaw_diff = est[2] - gt[2]
         yaw_error = (yaw_diff + np.pi) % (2 * np.pi) - np.pi  # Normalize
 
+        # Cross-track error
+        # get current rover position, corss track error is error along y axis
+        theta = gt[2]
+        cross_track_error = (gt[:2] - est[:2]).reshape((1,2))@np.array([[np.sin(theta)],[np.cos(theta)]])
+
         # Log to CSV
         timestamp = self.get_clock().now().nanoseconds / 1e9
-        self.csv_writer.writerow([timestamp, position_error, yaw_error])
+        self.csv_writer.writerow([timestamp, position_error, yaw_error, cross_track_error])
 
 
 def main(args=None):
