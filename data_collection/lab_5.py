@@ -39,7 +39,7 @@ class Lab5(Node):
         self.csv_writer.writerow(['timestamp', 'position_error', 'yaw_error']) # Header
 
         # Timer to periodically compute error
-        self.timer = self.create_timer(0.1, self.compute_error)
+        self.timer = self.create_timer(1, self.compute_error)
 
 
     def get_ground_truth_pose(self):
@@ -69,7 +69,7 @@ class Lab5(Node):
 
     def compute_error(self):
         self.ground_truth = self.get_ground_truth_pose()
-        if self.ground_truth is None or self.estimated_pose is None:
+        if self.estimated_pose is None:
             return
 
         gt = np.array(self.ground_truth)

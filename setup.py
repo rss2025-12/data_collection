@@ -1,3 +1,5 @@
+import glob
+import os
 from setuptools import find_packages, setup
 
 package_name = 'data_collection'
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/data_collection/launch', glob.glob(os.path.join('launch', '*launch.*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
