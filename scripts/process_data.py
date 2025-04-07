@@ -39,6 +39,7 @@ class DataReader():
             None
         """
         cnt = 0
+        # print(self.data['position_error'])
         for (x_csv, y_list_csv, title, filename) in self.desired_plots:
             print(f'creating plot {cnt}')
             x = self.data[x_csv]
@@ -48,6 +49,8 @@ class DataReader():
             for (y, varname) in zip(y_list, varnames):
                 plt.plot(x, y, label=varname)
             plt.title(title)
+            plt.xlabel(x_csv)
+            plt.ylabel(y_list_csv[0])
             plt.legend()
             plt.savefig(filename)
             cnt += 1
@@ -55,13 +58,16 @@ class DataReader():
         plt.show()
 
 if __name__== '__main__':
-    data_path = os.path.join(os.path.dirname(__file__), '../data/lab_5/test.csv')
-    filename1 = os.path.join(os.path.dirname(__file__), '../data/lab_5/cross_track_plot.png')
-    filename2 = os.path.join(os.path.dirname(__file__), '../data/lab_5/position_error.png')
-    filename2 = os.path.join(os.path.dirname(__file__), '../data/lab_5/yaw_error.png')
+    # run_id = '.1_.05'
+    run_id = '.3_.15'
+    # run_id = '.5_.25'
+    data_path = os.path.join(os.path.dirname(__file__), f'../data/lab_5/test_{run_id}.csv')
+    filename1 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/cross_track_plot_{run_id}.png')
+    filename2 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/position_error_{run_id}.png')
+    filename3 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/yaw_error_{run_id}.png')
     desired_plots = [
         ['timestamp', ['cross_track_error'], 'Cross Track Error', filename1],
-        ['timestamp', ['position_error'], 'Position Error', filename2]
+        ['timestamp', ['position_error'], 'Position Error', filename2],
         ['timestamp', ['yaw_error'], 'Yaw Error', filename3]
     ]
     reader = DataReader(data_path, desired_plots)

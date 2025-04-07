@@ -95,7 +95,8 @@ class Lab5SimTest(Node):
             self.steering_angle = self.steering_schedule[self.elapsed_time]
 
         # Stop
-        if self.elapsed_time == 71:
+        # if self.elapsed_time == 71:
+        if self.elapsed_time == 27:
             self.speed = 0.0
             self.get_logger().info("Test finished")
 
