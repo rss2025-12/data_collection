@@ -39,7 +39,8 @@ class Lab5(Node):
         self.csv_writer.writerow(['timestamp', 'position_error', 'yaw_error', 'cross_track_error']) # Header
 
         # Timer to periodically compute error
-        self.timer = self.create_timer(1, self.compute_error)
+        self.timer = self.create_timer(1/5, self.compute_error)
+        self.t0 = -1
 
 
     def get_ground_truth_pose(self):
@@ -85,10 +86,12 @@ class Lab5(Node):
         # Cross-track error
         # get current rover position, corss track error is error along y axis
         theta = gt[2]
-        cross_track_error = (gt[:2] - est[:2]).reshape((1,2))@np.array([[np.sin(theta)],[np.cos(theta)]])
+        cross_track_error = float((gt[:2] - est[:2]).reshape((1,2))@np.array([[np.sin(theta)],[np.cos(theta)]]))
 
         # Log to CSV
         timestamp = self.get_clock().now().nanoseconds / 1e9
+        if self.t0 == -1: self.t0 = timestamp
+        timestamp -= self.t0
         self.csv_writer.writerow([timestamp, position_error, yaw_error, cross_track_error])
 
 
