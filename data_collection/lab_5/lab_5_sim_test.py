@@ -7,14 +7,14 @@ import tf_transformations
 import numpy as np
 
 class Lab5SimTest(Node):
-    def __init__(self):
+    def __init__(self, convergence=False):
         super().__init__('lab_5_sim_test')
         self.drive_pub = self.create_publisher(AckermannDriveStamped, '/drive', 10)
         self.pose_pub = self.create_publisher(Pose, '/pose', 10)
         self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/initialpose', 10)
 
         # Timer to send commands at regular intervals
-        self.time_increment = 0.25
+        self.time_increment = 0.0625
         self.timer = self.create_timer(self.time_increment, self.timer_callback)  # Call every 1 second
         self.elapsed_time = 0  # Track elapsed time
 
@@ -38,12 +38,16 @@ class Lab5SimTest(Node):
 
         self.speed = 0.0
         self.steering_angle = 0.0
+        self.convergence = convergence
 
         # Set initial speed, angle, pose at the start
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = self.get_clock().now().to_msg()
-        drive_msg.drive.speed = self.speed
-        drive_msg.drive.steering_angle = self.steering_angle
+        drive_msg.drive.speed = 0.
+        drive_msg.drive.steering_angle = 0.
+        if not self.convergence:
+            drive_msg.drive.speed = self.speed
+            drive_msg.drive.steering_angle = self.steering_angle
         self.drive_pub.publish(drive_msg)
         self.send_initial_pose()
 
@@ -95,8 +99,8 @@ class Lab5SimTest(Node):
             self.steering_angle = self.steering_schedule[self.elapsed_time]
 
         # Stop
-        # if self.elapsed_time == 71:
-        if self.elapsed_time == 27:
+        if self.elapsed_time == 71:
+        # if self.elapsed_time == 27:
             self.speed = 0.0
             self.get_logger().info("Test finished")
 
@@ -105,8 +109,11 @@ class Lab5SimTest(Node):
         # Create and publish the drive command message
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = self.get_clock().now().to_msg()
-        drive_msg.drive.speed = self.speed
-        drive_msg.drive.steering_angle = self.steering_angle
+        drive_msg.drive.speed = 0.
+        drive_msg.drive.steering_angle = 0.
+        if not self.convergence:
+            drive_msg.drive.speed = self.speed
+            drive_msg.drive.steering_angle = self.steering_angle
         self.drive_pub.publish(drive_msg)
 
 def main(args=None):

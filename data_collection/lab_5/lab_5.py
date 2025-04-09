@@ -31,7 +31,7 @@ class Lab5(Node):
         self.estimated_pose = None
 
         # Writing data
-        output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_5/test_.3_.15.csv') # File name
+        output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_5/test_convergence_.1_.05.csv') # File name
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         self.csv_file = open(output_path, mode='w', newline='')

@@ -22,7 +22,6 @@ class DataReader():
             print(f"data in {self.data_path}:", headers)
 
             self.data = {header: [] for header in headers}
-
             for row in reader:
                 for header in headers:
                     self.data[header].append(float(row[header]))
@@ -44,6 +43,12 @@ class DataReader():
             print(f'creating plot {cnt}')
             x = self.data[x_csv]
             y_list = [self.data[y] for y in y_list_csv]
+            if title == 'Convergence':
+                N = 80
+                x, y_list = (x[:N], [y[:N] for y in y_list])
+            else:
+                N = 127
+                x, y_list = (x[:N], [y[:N] for y in y_list])
             varnames = y_list_csv
             plt.figure()
             for (y, varname) in zip(y_list, varnames):
@@ -58,17 +63,21 @@ class DataReader():
         plt.show()
 
 if __name__== '__main__':
-    # run_id = '.1_.05'
-    run_id = '.3_.15'
+    run_id = '.01_.005'
+    csv_id = 'convergence_.3_.15'
+    # run_id = '.3_.15'
     # run_id = '.5_.25'
-    data_path = os.path.join(os.path.dirname(__file__), f'../data/lab_5/test_{run_id}.csv')
+    data_path = os.path.join(os.path.dirname(__file__), f'../data/lab_5/test_{csv_id}.csv')
     filename1 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/cross_track_plot_{run_id}.png')
     filename2 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/position_error_{run_id}.png')
     filename3 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/yaw_error_{run_id}.png')
+    filename4 = os.path.join(os.path.dirname(__file__), f'../data/lab_5/convergence_{run_id}.png')
+
     desired_plots = [
         ['timestamp', ['cross_track_error'], 'Cross Track Error', filename1],
         ['timestamp', ['position_error'], 'Position Error', filename2],
-        ['timestamp', ['yaw_error'], 'Yaw Error', filename3]
+        ['timestamp', ['yaw_error'], 'Yaw Error', filename3],
+        ['timestamp', ['position_error'], 'Convergence', filename4],
     ]
     reader = DataReader(data_path, desired_plots)
     print('created datareader object')
