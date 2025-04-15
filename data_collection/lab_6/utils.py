@@ -222,7 +222,7 @@ class LineTrajectory:
 
     def publish_viz(self, duration=0):
         if not self.visualize:
-            print("Cannot visualize path, not initialized with visualization enabled")
+            # print("Cannot visualize path, not initialized with visualization enabled")
             return
         self.publish_start_point(duration=duration)
         self.publish_trajectory(duration=duration)

@@ -57,48 +57,49 @@ class Lab6(Node):
         timestamp = self.get_clock().now().nanoseconds / 1e9
         self.csv_writer.writerow([timestamp, crosstrack_error])
 
-    def compute_crosstrack_error(self, trajectory, position):
+    def compute_cte_vectorized(trajectory, position):
         """
-        trajectory: list of (x, y) tuples
-        position: (x, y) tuple of current car position
-        returns: crosstrack error (signed)
+        Vectorized cross-track error calculation.
+
+        Parameters:
+            trajectory: list of (x, y) waypoints
+            position: (x, y) car position
+
+        Returns:
+            signed cross-track error (float)
         """
-        px, py = position
-        min_dist = float('inf')
-        cte = 0.0
+        traj = np.array(trajectory)
+        pos = np.array(position)
 
-        for i in range(len(trajectory) - 1):
-            x1, y1 = trajectory[i]
-            x2, y2 = trajectory[i + 1]
+        p1 = traj[:-1]   # start of each segment
+        p2 = traj[1:]    # end of each segment
+        seg_vec = p2 - p1           # segment vectors
+        pt_vec = pos - p1           # vector from segment start to position
 
-            # Vector from segment start to end
-            dx = x2 - x1
-            dy = y2 - y1
+        seg_len_sq = np.sum(seg_vec**2, axis=1)
+        seg_len_sq[seg_len_sq == 0] = 1e-6  # avoid divide-by-zero
 
-            # Vector from segment start to current position
-            dx1 = px - x1
-            dy1 = py - y1
+        # Projection factor t of position onto each segment
+        t = np.clip(np.sum(pt_vec * seg_vec, axis=1) / seg_len_sq, 0.0, 1.0)
 
-            # Project point onto segment
-            seg_len_squared = dx**2 + dy**2
-            if seg_len_squared == 0:
-                # Degenerate segment
-                proj_x, proj_y = x1, y1
-            else:
-                t = max(0, min(1, (dx * dx1 + dy * dy1) / seg_len_squared))
-                proj_x = x1 + t * dx
-                proj_y = y1 + t * dy
+        # Closest points on each segment
+        proj = p1 + seg_vec * t[:, np.newaxis]
 
-            # Distance from position to closest point on segment
-            dist = np.hypot(px - proj_x, py - proj_y)
+        # Distances to projections
+        diff = pos - proj
+        dists = np.linalg.norm(diff, axis=1)
 
-            if dist < min_dist:
-                min_dist = dist
-                # Determine sign of CTE using the cross product
-                cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
-                cte = dist if cross > 0 else -dist
+        # Find closest segment
+        min_idx = np.argmin(dists)
+        cte = dists[min_idx]
 
-        return cte
+        # Determine sign using 2D cross product
+        v1 = seg_vec[min_idx]
+        v2 = pos - p1[min_idx]
+        cross = v1[0]*v2[1] - v1[1]*v2[0]
+        signed_cte = cte if cross > 0 else -cte
+
+        return signed_cte
 
 def main(args=None):
     rclpy.init(args=args)
