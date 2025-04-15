@@ -25,8 +25,8 @@ setup(
         'console_scripts': [
             'lab_5 = data_collection.lab_5.lab_5:main',
             'lab_5_sim_test = data_collection.lab_5.lab_5_sim_test:main',
-            'lab_6 = data_collection.lab_6:main',
-            'final = data_collection.final:main'
+            'lab_6 = data_collection.lab_6.lab_6:main',
+            'final = data_collection.final.final:main'
         ],
     },
 )
