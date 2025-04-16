@@ -58,7 +58,7 @@ class Lab6(Node):
         # Writing data
         self.write = True
         if self.write is True:
-            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/cross_track_long_new.csv') # File name
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/pf_cross_track_long_new.csv') # File name
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
             self.csv_file = open(output_path, mode='w', newline='')
