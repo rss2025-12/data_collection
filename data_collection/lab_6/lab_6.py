@@ -53,15 +53,21 @@ class Lab6(Node):
             'long': [(0.0, 0.0), (-55.0, 35.0)],
             'real': [(-16.0, 10.0), (-5.5, 25.0)]
             }
-        self.test = 'short'
+        self.test = 'long'
 
         # Writing data
-        output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/test.csv') # File name
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        self.write = True
+        if self.write is True:
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/pf_cross_track_long.csv') # File name
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        self.csv_file = open(output_path, mode='w', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
-        self.csv_writer.writerow(['timestamp', 'test', 'cross_track error'])
+            self.csv_file = open(output_path, mode='w', newline='')
+            self.csv_writer = csv.writer(self.csv_file)
+            self.csv_writer.writerow(['timestamp', 'test', 'cross_track error'])
+        else:
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/dummy.csv')
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            self.csv_file = open(output_path, mode='w', newline='')
 
         self.set_start_and_end()
 
@@ -149,7 +155,9 @@ class Lab6(Node):
         crosstrack_error = self.compute_cte(self.trajectory.points, (x, y))
 
         timestamp = self.get_clock().now().nanoseconds / 1e9
-        self.csv_writer.writerow([timestamp, self.test, crosstrack_error])
+
+        if self.write is True:
+            self.csv_writer.writerow([timestamp, self.test, crosstrack_error])
 
     def compute_cte(self, trajectory, position):
         """
