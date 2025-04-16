@@ -1,7 +1,9 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PoseArray, PoseWithCovarianceStamped, PoseStamped, Pose
 from nav_msgs.msg import Odometry
+from ackermann_msgs.msg import AckermannDriveStamped
+import tf_transformations
 
 import sys, os, csv
 sys.path.append(os.path.abspath('../../../path_planning/path_planning'))
@@ -22,9 +24,36 @@ class Lab6(Node):
                                                  "/trajectory/current",
                                                  self.trajectory_callback,
                                                  1)
+        self.drive_pub = self.create_publisher(AckermannDriveStamped,
+                                               '/drive',
+                                               10)
+        self.pose_pub = self.create_publisher(Pose,
+                                              '/pose',
+                                              10)
+        self.initial_pub = self.create_publisher(PoseWithCovarianceStamped,
+                                                      '/initialpose',
+                                                      10)
+        self.goal_pub = self.create_publisher(PoseStamped,
+                                              "/goal_pose",
+                                              1)
+
+        # # Stop robot
+        # drive_msg = AckermannDriveStamped()
+        # drive_msg.header.stamp = self.get_clock().now().to_msg()
+        # drive_msg.drive.speed = 0.0
+        # drive_msg.drive.steering_angle = 0.0
+        # self.drive_pub.publish(drive_msg)
 
         self.initialized_traj = False
-        self.trajectory = LineTrajectory("/followed_trajectory")
+        self.trajectory = LineTrajectory(node=self, viz_namespace="/data_trajectory")
+
+        self.tests = {
+            'short': [(0.0, 0.0), (-15.0, 12.0)],
+            'medium': [(0.0, 0.0), (-20.0, 34.0)],
+            'long': [(0.0, 0.0), (-55.0, 35.0)],
+            'real': [(-16.0, 10.0), (-5.5, 25.0)]
+            }
+        self.test = 'short'
 
         # Writing data
         output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/test.csv') # File name
@@ -32,7 +61,42 @@ class Lab6(Node):
 
         self.csv_file = open(output_path, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
-        self.csv_writer.writerow(['timestamp', 'cross_track error']) # Header
+        self.csv_writer.writerow(['timestamp', 'test', 'cross_track error'])
+
+        self.set_start_and_end()
+
+    def set_start_and_end(self):
+        start_x, start_y = self.tests[self.test][0]
+        theta = np.pi
+        goal_x, goal_y = self.tests[self.test][1]
+
+        # Set initial pose
+        initial_pose_msg = PoseWithCovarianceStamped()
+        initial_pose_msg.header.stamp = self.get_clock().now().to_msg()
+        initial_pose_msg.header.frame_id = 'map'
+
+        initial_pose_msg.pose.pose.position.x = start_x
+        initial_pose_msg.pose.pose.position.y = start_y
+        initial_pose_msg.pose.pose.position.z = 0.0
+
+        # Orientation (pi radians, facing backwards along the x-axis)
+        # Quaternion for a 180-degree rotation (π radians) around the Z-axis
+        initial_pose_msg.pose.pose.orientation.x = 0.0
+        initial_pose_msg.pose.pose.orientation.y = 0.0
+        initial_pose_msg.pose.pose.orientation.z = np.sin(theta / 2)
+        initial_pose_msg.pose.pose.orientation.w = np.cos(theta / 2)
+
+        # Publish goal pose
+        goal_msg = PoseStamped()
+        goal_msg.header.stamp = self.get_clock().now().to_msg()
+        goal_msg.header.frame_id = 'map'
+        goal_msg.pose.position.x = goal_x
+        goal_msg.pose.position.y = goal_y
+
+        self.initial_pub.publish(initial_pose_msg)
+        self.goal_pub.publish(goal_msg)
+
+        self.get_logger().info("Set pose and sent trajectory")
 
     def trajectory_callback(self, msg):
         self.get_logger().info(f"Receiving new trajectory with {len(msg.poses)} points")
@@ -40,6 +104,38 @@ class Lab6(Node):
         self.trajectory.clear()
         self.trajectory.fromPoseArray(msg)
         self.trajectory.publish_viz(duration=0.0)
+
+        start_x, start_y = self.tests[self.test][0]
+        theta = np.pi
+
+        # Set robot pose
+        pose_msg = Pose()
+        pose_msg.position.x = start_x
+        pose_msg.position.y = start_y
+
+        quaternion = tf_transformations.quaternion_from_euler(0, 0, theta)
+        pose_msg.orientation.y = quaternion[1]
+        pose_msg.orientation.z = quaternion[2]
+        pose_msg.orientation.w = quaternion[3]
+
+        # Set initial pose
+        initial_pose_msg = PoseWithCovarianceStamped()
+        initial_pose_msg.header.stamp = self.get_clock().now().to_msg()
+        initial_pose_msg.header.frame_id = 'map'
+
+        initial_pose_msg.pose.pose.position.x = start_x
+        initial_pose_msg.pose.pose.position.y = start_y
+        initial_pose_msg.pose.pose.position.z = 0.0
+
+        # Orientation (pi radians, facing backwards along the x-axis)
+        # Quaternion for a 180-degree rotation (π radians) around the Z-axis
+        initial_pose_msg.pose.pose.orientation.x = 0.0
+        initial_pose_msg.pose.pose.orientation.y = 0.0
+        initial_pose_msg.pose.pose.orientation.z = np.sin(theta / 2)
+        initial_pose_msg.pose.pose.orientation.w = np.cos(theta / 2)
+
+        self.initial_pub.publish(initial_pose_msg)
+        self.pose_pub.publish(pose_msg)
 
         self.initialized_traj = True
 
@@ -50,12 +146,12 @@ class Lab6(Node):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
 
-        crosstrack_error = self.compute_crosstrack_error(self.trajectory.points, (x, y))
+        crosstrack_error = self.compute_cte(self.trajectory.points, (x, y))
 
         timestamp = self.get_clock().now().nanoseconds / 1e9
-        self.csv_writer.writerow([timestamp, crosstrack_error])
+        self.csv_writer.writerow([timestamp, self.test, crosstrack_error])
 
-    def compute_crosstrack_error(self, trajectory, position):
+    def compute_cte(self, trajectory, position):
         """
         trajectory: list of (x, y) tuples
         position: (x, y) tuple of current car position
@@ -103,10 +199,13 @@ def main(args=None):
     node = Lab6()
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass  # Optional: print("KeyboardInterrupt received")
     finally:
         node.csv_file.close()
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

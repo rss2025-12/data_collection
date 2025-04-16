@@ -119,8 +119,15 @@ class Lab5SimTest(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = Lab5SimTest()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass  # Optional: print("KeyboardInterrupt received")
+    finally:
+        node.csv_file.close()
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
