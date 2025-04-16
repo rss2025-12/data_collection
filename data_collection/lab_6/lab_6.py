@@ -44,7 +44,7 @@ class Lab6(Node):
         # drive_msg.drive.steering_angle = 0.0
         # self.drive_pub.publish(drive_msg)
 
-        self.initialized_traj = False
+        self.initialized_traj = True
         self.trajectory = LineTrajectory(node=self, viz_namespace="/data_trajectory")
 
         self.tests = {
@@ -58,7 +58,7 @@ class Lab6(Node):
         # Writing data
         self.write = True
         if self.write is True:
-            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/pf_cross_track_long.csv') # File name
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/cross_track_long_new.csv') # File name
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
             self.csv_file = open(output_path, mode='w', newline='')

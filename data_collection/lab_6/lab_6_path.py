@@ -37,7 +37,7 @@ class Lab6Path(Node):
 
         self.test = 'short'
         self.algoithm = 'rrt'
-        self.cross_track = False
+        self.cross_track = True
 
         if self.cross_track is False:
             output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/rrt_short.csv')
