@@ -24,7 +24,7 @@ class Lab6(Node):
                                                  1)
 
         self.initialized_traj = False
-        self.trajectory = LineTrajectory(self)
+        self.trajectory = LineTrajectory("/followed_trajectory")
 
         # Writing data
         output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/test.csv') # File name
@@ -33,8 +33,6 @@ class Lab6(Node):
         self.csv_file = open(output_path, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['timestamp', 'cross_track error']) # Header
-
-        self.get_logger().info("Data collection started")
 
     def trajectory_callback(self, msg):
         self.get_logger().info(f"Receiving new trajectory with {len(msg.poses)} points")
@@ -46,7 +44,7 @@ class Lab6(Node):
         self.initialized_traj = True
 
     def pose_callback(self, msg):
-        if self.initialized_traj is False:
+        if self.trajectory is False:
             return
 
         x = msg.pose.pose.position.x
@@ -57,62 +55,58 @@ class Lab6(Node):
         timestamp = self.get_clock().now().nanoseconds / 1e9
         self.csv_writer.writerow([timestamp, crosstrack_error])
 
-    def compute_cte_vectorized(trajectory, position):
+    def compute_crosstrack_error(self, trajectory, position):
         """
-        Vectorized cross-track error calculation.
-
-        Parameters:
-            trajectory: list of (x, y) waypoints
-            position: (x, y) car position
-
-        Returns:
-            signed cross-track error (float)
+        trajectory: list of (x, y) tuples
+        position: (x, y) tuple of current car position
+        returns: crosstrack error (signed)
         """
-        traj = np.array(trajectory)
-        pos = np.array(position)
+        px, py = position
+        min_dist = float('inf')
+        cte = 0.0
 
-        p1 = traj[:-1]   # start of each segment
-        p2 = traj[1:]    # end of each segment
-        seg_vec = p2 - p1           # segment vectors
-        pt_vec = pos - p1           # vector from segment start to position
+        for i in range(len(trajectory) - 1):
+            x1, y1 = trajectory[i]
+            x2, y2 = trajectory[i + 1]
 
-        seg_len_sq = np.sum(seg_vec**2, axis=1)
-        seg_len_sq[seg_len_sq == 0] = 1e-6  # avoid divide-by-zero
+            # Vector from segment start to end
+            dx = x2 - x1
+            dy = y2 - y1
 
-        # Projection factor t of position onto each segment
-        t = np.clip(np.sum(pt_vec * seg_vec, axis=1) / seg_len_sq, 0.0, 1.0)
+            # Vector from segment start to current position
+            dx1 = px - x1
+            dy1 = py - y1
 
-        # Closest points on each segment
-        proj = p1 + seg_vec * t[:, np.newaxis]
+            # Project point onto segment
+            seg_len_squared = dx**2 + dy**2
+            if seg_len_squared == 0:
+                # Degenerate segment
+                proj_x, proj_y = x1, y1
+            else:
+                t = max(0, min(1, (dx * dx1 + dy * dy1) / seg_len_squared))
+                proj_x = x1 + t * dx
+                proj_y = y1 + t * dy
 
-        # Distances to projections
-        diff = pos - proj
-        dists = np.linalg.norm(diff, axis=1)
+            # Distance from position to closest point on segment
+            dist = np.hypot(px - proj_x, py - proj_y)
 
-        # Find closest segment
-        min_idx = np.argmin(dists)
-        cte = dists[min_idx]
+            if dist < min_dist:
+                min_dist = dist
+                # Determine sign of CTE using the cross product
+                cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
+                cte = dist if cross > 0 else -dist
 
-        # Determine sign using 2D cross product
-        v1 = seg_vec[min_idx]
-        v2 = pos - p1[min_idx]
-        cross = v1[0]*v2[1] - v1[1]*v2[0]
-        signed_cte = cte if cross > 0 else -cte
-
-        return signed_cte
+        return cte
 
 def main(args=None):
     rclpy.init(args=args)
     node = Lab6()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass  # Optional: print("KeyboardInterrupt received")
     finally:
         node.csv_file.close()
         node.destroy_node()
-        if rclpy.ok():
-            rclpy.shutdown()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
