@@ -110,6 +110,7 @@ class Lab6(Node):
         self.trajectory.clear()
         self.trajectory.fromPoseArray(msg)
         self.trajectory.publish_viz(duration=0.0)
+        self.get_logger().info(f"Total trajectory length = {self.trajectory.distances[-1]} meters")
 
         start_x, start_y = self.tests[self.test][0]
         theta = np.pi
