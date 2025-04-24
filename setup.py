@@ -27,6 +27,7 @@ setup(
             'lab_5_sim_test = data_collection.lab_5.lab_5_sim_test:main',
             'lab_6 = data_collection.lab_6.lab_6:main',
             'lab_6_path = data_collection.lab_6.lab_6_path:main',
+            'lab_6_real = data_collection.lab_6.lab_6_real:main',
             'final = data_collection.final.final:main'
         ],
     },

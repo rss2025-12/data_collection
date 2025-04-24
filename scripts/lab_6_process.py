@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 ### Map build time ###
 # file_name = "map.csv"
-# file_path = f"data/lab_6/{file_name}"
+# file_path = f"../data/lab_6/{file_name}"
 
 # df = pd.read_csv(file_path)
 
@@ -12,13 +12,13 @@ import matplotlib.pyplot as plt
 # column_name = "time"  # Replace with your actual column name
 # column_data = df[column_name]
 
-# print(np.mean(column_data.to_list()))
+# print(np.mean(column_data.to_list()[1:]))
 
 ### A* time ###
 # file_name = "a_star_short.csv"
 # file_name = "a_star_medium.csv"
 # file_name = "a_star_long.csv"
-# file_path = f"data/lab_6/{file_name}"
+# file_path = f"../data/lab_6/{file_name}"
 
 # df = pd.read_csv(file_path)
 
@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 # print(np.mean(column_data.to_list()[1:]))
 
 ### Cross track error ###
-file_name = "pf_cross_track_long_new.csv"
-file_path = f"data/lab_6/{file_name}"
+file_name = "cte_real.csv"
+file_path = f"../data/lab_6/{file_name}"
 
 df = pd.read_csv(file_path)
 
@@ -66,5 +66,5 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 
-plt.savefig("pf_cross_track_long.png", dpi=300)
+plt.savefig("cte_real.png", dpi=300)
 plt.show()

@@ -53,12 +53,12 @@ class Lab6(Node):
             'long': [(0.0, 0.0), (-55.0, 35.0)],
             'real': [(-16.0, 10.0), (-5.5, 25.0)]
             }
-        self.test = 'long'
+        self.test = 'medium'
 
         # Writing data
         self.write = True
         if self.write is True:
-            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/pf_cross_track_long_new.csv') # File name
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/1.25_lookahead.csv') # File name
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
             self.csv_file = open(output_path, mode='w', newline='')
@@ -110,7 +110,6 @@ class Lab6(Node):
         self.trajectory.clear()
         self.trajectory.fromPoseArray(msg)
         self.trajectory.publish_viz(duration=0.0)
-        self.get_logger().info(f"Total trajectory length = {self.trajectory.distances[-1]} meters")
 
         start_x, start_y = self.tests[self.test][0]
         theta = np.pi

@@ -35,12 +35,12 @@ class Lab6Path(Node):
             'real': [(-16.0, 10.0), (-5.5, 25.0)]
             }
 
-        self.test = 'short'
+        self.test = 'long'
         self.algoithm = 'rrt'
-        self.cross_track = True
+        self.cross_track = False
 
         if self.cross_track is False:
-            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/rrt_short.csv')
+            output_path = os.path.join(os.path.dirname(__file__), '../../data/lab_6/rrt_long.csv')
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
             self.csv_file = open(output_path, mode='a', newline='')
@@ -48,7 +48,7 @@ class Lab6Path(Node):
 
             # Only write the header if the file is empty
             if os.stat(output_path).st_size == 0:
-                self.csv_writer.writerow(['timestamp', 'algorithm', 'test', 'time'])
+                self.csv_writer.writerow(['timestamp', 'algorithm', 'test', 'time', 'length'])
 
         self.set_start_and_end(self.test)
 
@@ -88,9 +88,15 @@ class Lab6Path(Node):
     def trajectory_callback(self, msg):
         if self.cross_track is False:
             elapsed_time = time.time() - self.start_time
+
+            self.trajectory.clear()
+            self.trajectory.fromPoseArray(msg)
+            length = self.trajectory.distances[-1]
             self.get_logger().info(f"Recieved path in {elapsed_time}")
+            self.get_logger().info(f"Total trajectory length = {self.trajectory.distances[-1]} meters")
+
             timestamp = self.get_clock().now().to_msg().sec
-            self.csv_writer.writerow([timestamp, self.algoithm, self.test, elapsed_time])
+            self.csv_writer.writerow([timestamp, self.algoithm, self.test, elapsed_time, length])
 
 def main(args=None):
     rclpy.init(args=args)
